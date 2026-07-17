@@ -51,13 +51,14 @@ input { font-family: inherit; }
 }
 .auth-split {
   display: flex;
+  width: 100%;
   min-height: 100vh;
 }
 
 /* Brand panel */
 .auth-brand {
+  flex: 0 0 50%;
   width: 50%;
-  flex-shrink: 0;
   background: #0C1120;
   background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -194,7 +195,8 @@ input { font-family: inherit; }
 
 /* Form panel */
 .auth-form-panel {
-  flex: 1;
+  flex: 0 0 50%;
+  width: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
