@@ -1,0 +1,1948 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StoreOS — Admin</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #EEF2FF;
+  color: #101828;
+  min-height: 100vh;
+}
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input { font-family: inherit; }
+
+/* ── Tokens ───────────────────────────────────────────────── */
+:root {
+  --brand:      #7F56D9;
+  --brand-h:    #6941C6;
+  --brand-l:    #F4EBFF;
+  --brand-50:   #F9F5FF;
+  --sidebar-bg: #0C1120;
+  --content-bg: #EEF2FF;
+  --card-bg:    #FFFFFF;
+  --border:     #EAECF0;
+  --border-2:   #D0D5DD;
+  --text-1:     #101828;
+  --text-2:     #344054;
+  --text-3:     #475467;
+  --text-4:     #667085;
+  --shadow-sm:  0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md:  0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06);
+}
+
+/* ── Views ────────────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: flex; }
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH SCREENS (Login + Signup)
+═══════════════════════════════════════════════════════════ */
+.auth-wrap {
+  min-height: 100vh;
+  background: #fff;
+}
+.auth-split {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Brand panel */
+.auth-brand {
+  width: 44%;
+  flex-shrink: 0;
+  background: #0C1120;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-brand-glow {
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(127,86,217,.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 48px;
+}
+.auth-logo-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.02em;
+}
+.auth-headline {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  max-width: 320px;
+  margin-bottom: 12px;
+}
+.auth-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,.5);
+  line-height: 1.6;
+  max-width: 300px;
+  margin-bottom: 32px;
+}
+
+/* Mini dashboard */
+.mini-dash { display: flex; flex-direction: column; gap: 12px; }
+.mini-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+.mini-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+.mini-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  margin-bottom: 8px;
+}
+.mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(5,150,105,.2);
+  color: #34D399;
+  font-size: 12px;
+  font-weight: 500;
+}
+.mini-orders { display: flex; flex-direction: column; gap: 10px; }
+.mini-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mini-order-id {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+  width: 36px;
+}
+.mini-order-name {
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+  font-weight: 500;
+}
+.mini-order-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  margin-right: 10px;
+}
+.mini-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(5,150,105,.2);
+  color: #34D399;
+  font-weight: 500;
+}
+.auth-quote-block {
+  margin-top: auto;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.auth-quote {
+  font-size: 14px;
+  font-style: italic;
+  color: rgba(255,255,255,.55);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.auth-quote-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .02em;
+}
+
+/* Form panel */
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #fff;
+}
+.auth-form-inner {
+  width: 100%;
+  max-width: 400px;
+}
+.auth-form-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.auth-form-logo-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #101828;
+  letter-spacing: -.02em;
+}
+.auth-form-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #101828;
+  letter-spacing: -.02em;
+  margin-bottom: 6px;
+}
+.auth-form-desc {
+  font-size: 16px;
+  color: #475467;
+  margin-bottom: 24px;
+}
+.social-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid #D0D5DD;
+  background: #fff;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(16,24,40,.05);
+  transition: background .15s, box-shadow .15s;
+  cursor: pointer;
+  font-family: inherit;
+}
+.social-btn:hover { background: #F9FAFB; box-shadow: 0 1px 2px rgba(16,24,40,.1); }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #667085;
+  font-size: 14px;
+}
+.divider-line { flex: 1; height: 1px; background: #EAECF0; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; color: #344054; }
+.field-input-wrap { position: relative; }
+.field input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #D0D5DD;
+  font-size: 14px;
+  color: #101828;
+  background: #fff;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.field input::placeholder { color: #667085; }
+.field input:focus {
+  border-color: #7F56D9;
+  box-shadow: 0 0 0 4px #F4EBFF;
+}
+.field input.has-trail { padding-right: 44px; }
+.field-trail {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #667085;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.field-hint { font-size: 13px; color: #475467; }
+
+.form-stack { display: flex; flex-direction: column; gap: 16px; }
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  accent-color: #7F56D9;
+  margin-top: 2px;
+  cursor: pointer;
+}
+.checkbox-label {
+  font-size: 14px;
+  color: #344054;
+  line-height: 20px;
+}
+.checkbox-label a { color: #6941C6; font-weight: 500; }
+
+.btn-primary {
+  width: 100%;
+  padding: 10px 18px;
+  background: #7F56D9;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background .15s, opacity .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover:not(:disabled) { background: #6941C6; }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary.lg { padding: 12px 20px; font-size: 16px; }
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #475467;
+}
+.auth-footer a { color: #6941C6; font-weight: 600; cursor: pointer; }
+
+/* Forgot password link */
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+}
+.forgot-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6941C6;
+  cursor: pointer;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════ */
+#view-dashboard {
+  display: none;
+  height: 100vh;
+  overflow: hidden;
+}
+#view-dashboard.active {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: #0C1120;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+.sidebar-glow {
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(127,86,217,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.sidebar-logo-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.02em;
+}
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+.nav-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 8px 12px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255,255,255,.55);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background .15s, color .15s;
+  margin-bottom: 2px;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+.nav-item.active { background: rgba(127,86,217,.25); color: #C4B5FD; }
+.nav-item.active .nav-icon { color: #A78BFA; }
+.nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: .9; }
+.nav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  background: #7F56D9;
+  color: #fff;
+  border-radius: 9999px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+.sidebar-user {
+  padding: 12px 12px 20px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7F56D9, #6941C6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.logout-btn {
+  color: rgba(255,255,255,.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color .15s, background .15s;
+  display: flex;
+  align-items: center;
+}
+.logout-btn:hover { color: rgba(255,255,255,.7); background: rgba(255,255,255,.08); }
+
+/* Main area */
+.dash-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #EAECF0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+  letter-spacing: -.02em;
+  flex: 1;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667085;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  position: relative;
+}
+.topbar-icon-btn:hover { background: #F9FAFB; color: #344054; }
+.notif-dot {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 8px; height: 8px;
+  background: #F04438;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.topbar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7F56D9, #6941C6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+}
+.topbar-sep {
+  width: 1px;
+  height: 24px;
+  background: #EAECF0;
+}
+
+/* Content */
+.dash-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #EAECF0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #101828;
+}
+.card-desc {
+  font-size: 13px;
+  color: #475467;
+  margin-top: 2px;
+}
+.card-body { padding: 20px; }
+.card-body-0 { padding: 0; }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.kpi-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475467;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #101828;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  margin-bottom: 8px;
+}
+.kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+.kpi-trend.up { background: #ECFDF3; color: #067647; }
+.kpi-trend.down { background: #FEF3F2; color: #B42318; }
+.kpi-trend.neutral { background: #F9FAFB; color: #344054; }
+.kpi-sub {
+  display: inline;
+  font-size: 12px;
+  color: #667085;
+  margin-left: 6px;
+}
+
+/* Two-col layout */
+.row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.row-2-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Chart */
+.chart-period-btns {
+  display: flex;
+  gap: 4px;
+  background: #F2F4F7;
+  border-radius: 8px;
+  padding: 3px;
+}
+.period-btn {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #667085;
+  cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+.period-btn.active {
+  background: #fff;
+  color: #101828;
+  box-shadow: 0 1px 2px rgba(16,24,40,.1);
+}
+#sales-canvas {
+  width: 100%;
+  height: 220px;
+  display: block;
+}
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid #EAECF0;
+  background: #F9FAFB;
+}
+.data-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #101828;
+  border-bottom: 1px solid #EAECF0;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #F9FAFB; }
+.data-table th:first-child { border-radius: 12px 0 0 0; }
+.data-table th:last-child { border-radius: 0 12px 0 0; }
+
+.order-id { font-family: ui-monospace, monospace; font-size: 13px; color: #475467; }
+.order-customer { font-weight: 500; }
+.order-customer-email { font-size: 12px; color: #667085; font-weight: 400; }
+.order-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-paid { background: #ECFDF3; color: #067647; }
+.status-pending { background: #FFFAEB; color: #B54708; }
+.status-processing { background: #EFF8FF; color: #175CD3; }
+.status-refund { background: #FEF3F2; color: #B42318; }
+.status-shipped { background: #F4EBFF; color: #6941C6; }
+
+/* Products list */
+.product-list { display: flex; flex-direction: column; }
+.product-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #EAECF0;
+}
+.product-row:last-child { border-bottom: none; }
+.product-rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: #D0D5DD;
+  width: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.product-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #F4EBFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.product-info { flex: 1; min-width: 0; }
+.product-name { font-size: 14px; font-weight: 500; color: #101828; }
+.product-cat { font-size: 12px; color: #667085; }
+.product-stats { text-align: right; }
+.product-revenue { font-size: 14px; font-weight: 600; color: #101828; font-variant-numeric: tabular-nums; }
+.product-units { font-size: 12px; color: #667085; font-variant-numeric: tabular-nums; }
+.product-bar-wrap {
+  width: 80px;
+  height: 4px;
+  background: #F2F4F7;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 6px;
+  margin-left: auto;
+}
+.product-bar {
+  height: 100%;
+  background: #7F56D9;
+  border-radius: 9999px;
+}
+
+/* Inventory alerts */
+.inv-list { display: flex; flex-direction: column; }
+.inv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #EAECF0;
+}
+.inv-row:last-child { border-bottom: none; }
+.inv-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.inv-icon.critical { background: #FEF3F2; }
+.inv-icon.warn { background: #FFFAEB; }
+.inv-info { flex: 1; min-width: 0; }
+.inv-name { font-size: 14px; font-weight: 500; color: #101828; }
+.inv-stock { font-size: 12px; font-variant-numeric: tabular-nums; }
+.inv-stock.critical { color: #B42318; }
+.inv-stock.warn { color: #B54708; }
+.inv-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #D0D5DD;
+  background: #fff;
+  color: #344054;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.inv-btn:hover { background: #F9FAFB; }
+.inv-btn.critical { border-color: #FDA29B; color: #B42318; background: #FEF3F2; }
+.inv-btn.critical:hover { background: #FEE4E2; }
+
+/* Customer insights */
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px;
+}
+.insight-item {
+  background: #F9FAFB;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.insight-label {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.insight-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #101828;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.insight-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.insight-trend.up { color: #067647; }
+.insight-trend.down { color: #B42318; }
+
+/* Quick actions */
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 20px;
+}
+.qa-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 10px;
+  border: 1px solid #EAECF0;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.qa-btn:hover {
+  background: #F9F5FF;
+  border-color: #D6BBFB;
+  box-shadow: 0 0 0 4px #F4EBFF;
+}
+.qa-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #F4EBFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qa-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #344054;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Notifications */
+.notif-list { display: flex; flex-direction: column; }
+.notif-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #EAECF0;
+  cursor: pointer;
+  transition: background .15s;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: #F9FAFB; }
+.notif-item.unread { background: #F9F5FF; }
+.notif-item.unread:hover { background: #F4EBFF; }
+.notif-dot-outer {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7F56D9;
+  flex-shrink: 0;
+  margin-top: 6px;
+  opacity: 0;
+}
+.notif-item.unread .notif-dot-outer { opacity: 1; }
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.notif-body { flex: 1; min-width: 0; }
+.notif-text { font-size: 13px; color: #344054; line-height: 1.5; }
+.notif-text strong { color: #101828; font-weight: 600; }
+.notif-time { font-size: 12px; color: #667085; margin-top: 3px; }
+
+/* Scrollbar (content area) */
+.dash-content::-webkit-scrollbar { width: 4px; }
+.dash-content::-webkit-scrollbar-track { background: transparent; }
+.dash-content::-webkit-scrollbar-thumb { background: #D0D5DD; border-radius: 9999px; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .row-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .auth-brand { display: none; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .row-2-eq { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN VIEW ════════════════ -->
+<div id="view-login" class="view auth-wrap active">
+  <div class="auth-split">
+    <!-- Brand panel -->
+    <div class="auth-brand">
+      <div class="auth-brand-glow"></div>
+      <div class="auth-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="17" width="5" height="9" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+          <rect x="11.5" y="9" width="5" height="17" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+          <rect x="21" y="2" width="5" height="24" rx="1.5" fill="#9E77ED"/>
+        </svg>
+        <span class="auth-logo-name">StoreOS</span>
+      </div>
+      <h1 class="auth-headline">The command center for serious ecommerce</h1>
+      <p class="auth-sub">Real-time analytics, inventory, orders, and customers — in one place.</p>
+      <!-- Mini dashboard -->
+      <div class="mini-dash">
+        <div class="mini-metrics">
+          <div class="mini-card">
+            <div class="mini-label">Revenue today</div>
+            <div class="mini-value">$4,281</div>
+            <span class="mini-badge">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +12.5%
+            </span>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Orders</div>
+            <div class="mini-value">143</div>
+            <span class="mini-badge">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +8.3%
+            </span>
+          </div>
+        </div>
+        <div class="mini-card" style="padding:16px 16px 12px">
+          <div class="mini-label">Revenue — last 30 days</div>
+          <svg viewBox="0 0 280 72" fill="none" style="width:100%;display:block">
+            <defs>
+              <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7F56D9" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#7F56D9" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,64 C 10,59 10,56 20,57 C 30,58 30,61 40,60 C 50,59 50,51 60,50 C 70,49 70,53 80,52 C 90,51 90,42 100,41 C 110,40 110,37 120,37 C 130,37 130,42 140,40 C 150,38 150,30 160,28 C 170,26 170,25 180,24 C 190,23 190,29 200,27 C 210,25 210,19 220,17 C 230,15 230,12 240,11 C 250,10 250,6 260,5 C 270,4 270,2 280,2 L 280,72 L 0,72 Z" fill="url(#sg)"/>
+            <path d="M 0,64 C 10,59 10,56 20,57 C 30,58 30,61 40,60 C 50,59 50,51 60,50 C 70,49 70,53 80,52 C 90,51 90,42 100,41 C 110,40 110,37 120,37 C 130,37 130,42 140,40 C 150,38 150,30 160,28 C 170,26 170,25 180,24 C 190,23 190,29 200,27 C 210,25 210,19 220,17 C 230,15 230,12 240,11 C 250,10 250,6 260,5 C 270,4 270,2 280,2" stroke="#9E77ED" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <circle cx="280" cy="2" r="4" fill="#7F56D9"/>
+            <circle cx="280" cy="2" r="7" fill="#7F56D9" fill-opacity="0.25"/>
+          </svg>
+        </div>
+        <div class="mini-card">
+          <div class="mini-label">Recent orders</div>
+          <div class="mini-orders">
+            <div class="mini-order-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mini-order-id">#4291</span>
+                <span class="mini-order-name">Maya Patel</span>
+              </div>
+              <div style="display:flex;align-items:center">
+                <span class="mini-order-amount">$249</span>
+                <span class="mini-status">Paid</span>
+              </div>
+            </div>
+            <div class="mini-order-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mini-order-id">#4290</span>
+                <span class="mini-order-name">Carlos Rivera</span>
+              </div>
+              <div style="display:flex;align-items:center">
+                <span class="mini-order-amount">$89</span>
+                <span class="mini-status">Paid</span>
+              </div>
+            </div>
+            <div class="mini-order-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mini-order-id">#4289</span>
+                <span class="mini-order-name">Nora Larsson</span>
+              </div>
+              <div style="display:flex;align-items:center">
+                <span class="mini-order-amount">$415</span>
+                <span class="mini-status">Paid</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-quote-block">
+        <p class="auth-quote">"StoreOS gave our team visibility we never had before. Revenue is up 38% since we switched."</p>
+        <p class="auth-quote-author">AISHA TANAKA — Founder, Mira Collective</p>
+      </div>
+    </div>
+    <!-- Form panel -->
+    <div class="auth-form-panel">
+      <div class="auth-form-inner">
+        <div class="auth-form-logo">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="17" width="5" height="9" rx="1.5" fill="#7F56D9"/>
+            <rect x="11.5" y="9" width="5" height="17" rx="1.5" fill="#7F56D9"/>
+            <rect x="21" y="2" width="5" height="24" rx="1.5" fill="#6941C6"/>
+          </svg>
+          <span class="auth-form-logo-name">StoreOS</span>
+        </div>
+        <h2 class="auth-form-title">Welcome back</h2>
+        <p class="auth-form-desc">Sign in to your account to continue.</p>
+        <button class="social-btn" onclick="showView('dashboard')">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path d="M16.51 7.5H9v3.25h4.28c-.41 2-2.2 3.25-4.28 3.25A4.75 4.75 0 0 1 9 4.25c1.27 0 2.42.48 3.29 1.27l2.28-2.28A8 8 0 1 0 17 9a8.11 8.11 0 0 0-.49-1.5z" fill="#4285F4"/></svg>
+          Sign in with Google
+        </button>
+        <div class="divider"><div class="divider-line"></div>or continue with email<div class="divider-line"></div></div>
+        <div class="form-stack">
+          <div class="field">
+            <label for="l-email">Email</label>
+            <input id="l-email" type="email" placeholder="jordan@mystore.com" />
+          </div>
+          <div class="field">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <label for="l-pwd" style="margin-bottom:0">Password</label>
+              <span class="forgot-link">Forgot password?</span>
+            </div>
+            <div class="field-input-wrap">
+              <input id="l-pwd" type="password" placeholder="Enter your password" class="has-trail" />
+              <span class="field-trail" onclick="togglePwd('l-pwd',this)">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C2.55 5.33 5.5 3 9 3s6.45 2.33 8 6c-1.55 3.67-4.5 6-8 6S2.55 12.67 1 9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+              </span>
+            </div>
+          </div>
+          <button class="btn-primary lg" onclick="showView('dashboard')">Sign in</button>
+        </div>
+        <p class="auth-footer">
+          Don't have an account? <a onclick="showView('signup')">Create account</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SIGNUP VIEW ════════════════ -->
+<div id="view-signup" class="view auth-wrap">
+  <div class="auth-split">
+    <div class="auth-brand">
+      <div class="auth-brand-glow"></div>
+      <div class="auth-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="17" width="5" height="9" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+          <rect x="11.5" y="9" width="5" height="17" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+          <rect x="21" y="2" width="5" height="24" rx="1.5" fill="#9E77ED"/>
+        </svg>
+        <span class="auth-logo-name">StoreOS</span>
+      </div>
+      <h1 class="auth-headline">The command center for serious ecommerce</h1>
+      <p class="auth-sub">Real-time analytics, inventory, orders, and customers — in one place.</p>
+      <div class="mini-dash">
+        <div class="mini-metrics">
+          <div class="mini-card">
+            <div class="mini-label">Revenue today</div>
+            <div class="mini-value">$4,281</div>
+            <span class="mini-badge">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +12.5%
+            </span>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Orders</div>
+            <div class="mini-value">143</div>
+            <span class="mini-badge">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +8.3%
+            </span>
+          </div>
+        </div>
+        <div class="mini-card" style="padding:16px 16px 12px">
+          <div class="mini-label">Revenue — last 30 days</div>
+          <svg viewBox="0 0 280 72" fill="none" style="width:100%;display:block">
+            <defs>
+              <linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7F56D9" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#7F56D9" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,64 C 10,59 10,56 20,57 C 30,58 30,61 40,60 C 50,59 50,51 60,50 C 70,49 70,53 80,52 C 90,51 90,42 100,41 C 110,40 110,37 120,37 C 130,37 130,42 140,40 C 150,38 150,30 160,28 C 170,26 170,25 180,24 C 190,23 190,29 200,27 C 210,25 210,19 220,17 C 230,15 230,12 240,11 C 250,10 250,6 260,5 C 270,4 270,2 280,2 L 280,72 L 0,72 Z" fill="url(#sg2)"/>
+            <path d="M 0,64 C 10,59 10,56 20,57 C 30,58 30,61 40,60 C 50,59 50,51 60,50 C 70,49 70,53 80,52 C 90,51 90,42 100,41 C 110,40 110,37 120,37 C 130,37 130,42 140,40 C 150,38 150,30 160,28 C 170,26 170,25 180,24 C 190,23 190,29 200,27 C 210,25 210,19 220,17 C 230,15 230,12 240,11 C 250,10 250,6 260,5 C 270,4 270,2 280,2" stroke="#9E77ED" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <circle cx="280" cy="2" r="4" fill="#7F56D9"/>
+            <circle cx="280" cy="2" r="7" fill="#7F56D9" fill-opacity="0.25"/>
+          </svg>
+        </div>
+        <div class="mini-card">
+          <div class="mini-label">Recent orders</div>
+          <div class="mini-orders">
+            <div class="mini-order-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mini-order-id">#4291</span><span class="mini-order-name">Maya Patel</span>
+              </div>
+              <div style="display:flex;align-items:center"><span class="mini-order-amount">$249</span><span class="mini-status">Paid</span></div>
+            </div>
+            <div class="mini-order-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mini-order-id">#4290</span><span class="mini-order-name">Carlos Rivera</span>
+              </div>
+              <div style="display:flex;align-items:center"><span class="mini-order-amount">$89</span><span class="mini-status">Paid</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-quote-block">
+        <p class="auth-quote">"StoreOS gave our team visibility we never had before. Revenue is up 38% since we switched."</p>
+        <p class="auth-quote-author">AISHA TANAKA — Founder, Mira Collective</p>
+      </div>
+    </div>
+    <div class="auth-form-panel">
+      <div class="auth-form-inner">
+        <div class="auth-form-logo">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="17" width="5" height="9" rx="1.5" fill="#7F56D9"/>
+            <rect x="11.5" y="9" width="5" height="17" rx="1.5" fill="#7F56D9"/>
+            <rect x="21" y="2" width="5" height="24" rx="1.5" fill="#6941C6"/>
+          </svg>
+          <span class="auth-form-logo-name">StoreOS</span>
+        </div>
+        <h2 class="auth-form-title">Create your account</h2>
+        <p class="auth-form-desc">Start your 14-day free trial — no credit card required.</p>
+        <button class="social-btn" onclick="showView('dashboard')">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path d="M16.51 7.5H9v3.25h4.28c-.41 2-2.2 3.25-4.28 3.25A4.75 4.75 0 0 1 9 4.25c1.27 0 2.42.48 3.29 1.27l2.28-2.28A8 8 0 1 0 17 9a8.11 8.11 0 0 0-.49-1.5z" fill="#4285F4"/></svg>
+          Sign up with Google
+        </button>
+        <div class="divider"><div class="divider-line"></div>or continue with email<div class="divider-line"></div></div>
+        <form class="form-stack" onsubmit="handleSignup(event)">
+          <div class="field">
+            <label for="s-name">Full name</label>
+            <input id="s-name" type="text" placeholder="Jordan Mitchell" required />
+          </div>
+          <div class="field">
+            <label for="s-email">Work email</label>
+            <input id="s-email" type="email" placeholder="jordan@mystore.com" required />
+          </div>
+          <div class="field">
+            <label for="s-pwd">Password</label>
+            <div class="field-input-wrap">
+              <input id="s-pwd" type="password" placeholder="Min. 8 characters" class="has-trail" required />
+              <span class="field-trail" onclick="togglePwd('s-pwd',this)">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C2.55 5.33 5.5 3 9 3s6.45 2.33 8 6c-1.55 3.67-4.5 6-8 6S2.55 12.67 1 9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+              </span>
+            </div>
+            <span class="field-hint">Use a mix of letters, numbers, and symbols.</span>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="s-terms" onchange="document.getElementById('s-submit').disabled=!this.checked" />
+            <label for="s-terms" class="checkbox-label">
+              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </label>
+          </div>
+          <button id="s-submit" type="submit" class="btn-primary lg" disabled>Create account</button>
+        </form>
+        <p class="auth-footer">
+          Already have an account? <a onclick="showView('login')">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ DASHBOARD VIEW ════════════════ -->
+<div id="view-dashboard" class="view">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-glow"></div>
+    <div class="sidebar-logo">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <rect x="2" y="17" width="5" height="9" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+        <rect x="11.5" y="9" width="5" height="17" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+        <rect x="21" y="2" width="5" height="24" rx="1.5" fill="#9E77ED"/>
+      </svg>
+      <span class="sidebar-logo-name">StoreOS</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".5"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".5"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M2 5h16M2 10h10M2 15h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Orders
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 4V2.5M13 4V2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.5"/></svg>
+        Products
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Inventory
+        <span class="nav-badge" style="background:#F04438">4</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 18a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Customers
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Analytics</div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 14l4-5 4 3 3-4 3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="3" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2v4M10 14v4M4.22 4.22l2.83 2.83M12.95 12.95l2.83 2.83M2 10h4M14 10h4M4.22 15.78l2.83-2.83M12.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Reports
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Store</div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 3h14l-1.5 9H4.5L3 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7" cy="17" r="1.5" fill="currentColor"/><circle cx="13" cy="17" r="1.5" fill="currentColor"/></svg>
+        Storefront
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 6h14M3 10h14M3 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Categories
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Discounts
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">System</div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 0 1 6 6c0 4-6 10-6 10S4 12 4 8a6 6 0 0 1 6-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        Settings
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar">JM</div>
+      <div class="user-info">
+        <div class="user-name">Jordan Mitchell</div>
+        <div class="user-role">Store Admin</div>
+      </div>
+      <div class="logout-btn" onclick="showView('login')" title="Logout">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M13 10H3M3 10l3-3M3 10l3 3M10 6V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="dash-main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-actions">
+        <div class="topbar-icon-btn" title="Notifications">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 0 1 6 6v3l2 3H2l2-3V8a6 6 0 0 1 6-6zM8 16a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="notif-dot"></span>
+        </div>
+        <div class="topbar-sep"></div>
+        <div class="topbar-avatar">JM</div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="dash-content">
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Total Sales
+            <div class="kpi-icon" style="background:#F4EBFF">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 14l4-5 4 3 3-4 3 2" stroke="#7F56D9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value">$48,295</div>
+          <span class="kpi-trend up">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            +18.2%
+          </span>
+          <span class="kpi-sub">vs last month</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Total Orders
+            <div class="kpi-icon" style="background:#EFF8FF">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 3h14l-1.5 9H4.5L3 3z" stroke="#1570EF" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7" cy="17" r="1.5" fill="#1570EF"/><circle cx="13" cy="17" r="1.5" fill="#1570EF"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value">1,847</div>
+          <span class="kpi-trend up">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            +9.4%
+          </span>
+          <span class="kpi-sub">vs last month</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Products in Stock
+            <div class="kpi-icon" style="background:#ECFDF3">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="#079455" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value">342</div>
+          <span class="kpi-trend down">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            −4.1%
+          </span>
+          <span class="kpi-sub">4 low-stock items</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Pending Orders
+            <div class="kpi-icon" style="background:#FFFAEB">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#DC6803" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="#DC6803" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value">28</div>
+          <span class="kpi-trend neutral">—</span>
+          <span class="kpi-sub">needs attention</span>
+        </div>
+      </div>
+
+      <!-- Chart + Customer Insights -->
+      <div class="row-2">
+        <!-- Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Sales Analytics</div>
+              <div class="card-desc">Revenue over time</div>
+            </div>
+            <div class="chart-period-btns">
+              <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
+              <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
+              <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <canvas id="sales-canvas" height="220"></canvas>
+          </div>
+        </div>
+        <!-- Customer Insights -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Customer Insights</div>
+              <div class="card-desc">This month</div>
+            </div>
+          </div>
+          <div class="insight-grid">
+            <div class="insight-item">
+              <div class="insight-label">New Customers</div>
+              <div class="insight-value">284</div>
+              <div class="insight-trend up">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                +22%
+              </div>
+            </div>
+            <div class="insight-item">
+              <div class="insight-label">Returning Rate</div>
+              <div class="insight-value">41%</div>
+              <div class="insight-trend up">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                +5%
+              </div>
+            </div>
+            <div class="insight-item">
+              <div class="insight-label">Avg. Order Value</div>
+              <div class="insight-value">$61</div>
+              <div class="insight-trend down">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                −3%
+              </div>
+            </div>
+            <div class="insight-item">
+              <div class="insight-label">Satisfaction</div>
+              <div class="insight-value">4.7★</div>
+              <div class="insight-trend up">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                +0.2
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Recent Orders</div>
+            <div class="card-desc">Latest 6 transactions</div>
+          </div>
+          <button style="padding:8px 14px;border-radius:8px;border:1px solid #D0D5DD;background:#fff;font-size:13px;font-weight:600;color:#344054;cursor:pointer;font-family:inherit">View all orders</button>
+        </div>
+        <div class="card-body-0" style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="order-id">#ORD-4291</span></td>
+                <td><div class="order-customer">Maya Patel</div><div class="order-customer-email">maya@example.com</div></td>
+                <td>3 items</td>
+                <td class="order-amount">$249.00</td>
+                <td><span class="status-badge status-paid">Paid</span></td>
+                <td style="color:#667085;font-size:13px">Jul 16, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="order-id">#ORD-4290</span></td>
+                <td><div class="order-customer">Carlos Rivera</div><div class="order-customer-email">carlos@example.com</div></td>
+                <td>1 item</td>
+                <td class="order-amount">$89.00</td>
+                <td><span class="status-badge status-shipped">Shipped</span></td>
+                <td style="color:#667085;font-size:13px">Jul 15, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="order-id">#ORD-4289</span></td>
+                <td><div class="order-customer">Nora Larsson</div><div class="order-customer-email">nora@example.com</div></td>
+                <td>5 items</td>
+                <td class="order-amount">$415.00</td>
+                <td><span class="status-badge status-processing">Processing</span></td>
+                <td style="color:#667085;font-size:13px">Jul 15, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="order-id">#ORD-4288</span></td>
+                <td><div class="order-customer">Ahmed Al-Rashid</div><div class="order-customer-email">ahmed@example.com</div></td>
+                <td>2 items</td>
+                <td class="order-amount">$178.50</td>
+                <td><span class="status-badge status-paid">Paid</span></td>
+                <td style="color:#667085;font-size:13px">Jul 14, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="order-id">#ORD-4287</span></td>
+                <td><div class="order-customer">Priya Sharma</div><div class="order-customer-email">priya@example.com</div></td>
+                <td>1 item</td>
+                <td class="order-amount">$34.99</td>
+                <td><span class="status-badge status-refund">Refund</span></td>
+                <td style="color:#667085;font-size:13px">Jul 14, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="order-id">#ORD-4286</span></td>
+                <td><div class="order-customer">James O'Brien</div><div class="order-customer-email">james@example.com</div></td>
+                <td>4 items</td>
+                <td class="order-amount">$312.00</td>
+                <td><span class="status-badge status-pending">Pending</span></td>
+                <td style="color:#667085;font-size:13px">Jul 13, 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Products + Inventory -->
+      <div class="row-2-eq">
+        <!-- Top Products -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top Selling Products</div>
+              <div class="card-desc">This month's leaders</div>
+            </div>
+          </div>
+          <div class="product-list">
+            <div class="product-row">
+              <span class="product-rank">1</span>
+              <div class="product-icon">📱</div>
+              <div class="product-info">
+                <div class="product-name">MagSafe Phone Cases</div>
+                <div class="product-cat">Cases &amp; Protection</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-revenue">$8,240</div>
+                <div class="product-units">312 units</div>
+                <div class="product-bar-wrap"><div class="product-bar" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="product-row">
+              <span class="product-rank">2</span>
+              <div class="product-icon">⚡</div>
+              <div class="product-info">
+                <div class="product-name">65W GaN Chargers</div>
+                <div class="product-cat">Charging</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-revenue">$6,890</div>
+                <div class="product-units">241 units</div>
+                <div class="product-bar-wrap"><div class="product-bar" style="width:77%"></div></div>
+              </div>
+            </div>
+            <div class="product-row">
+              <span class="product-rank">3</span>
+              <div class="product-icon">🔋</div>
+              <div class="product-info">
+                <div class="product-name">20,000mAh Power Banks</div>
+                <div class="product-cat">Charging</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-revenue">$5,120</div>
+                <div class="product-units">128 units</div>
+                <div class="product-bar-wrap"><div class="product-bar" style="width:62%"></div></div>
+              </div>
+            </div>
+            <div class="product-row">
+              <span class="product-rank">4</span>
+              <div class="product-icon">🛡️</div>
+              <div class="product-info">
+                <div class="product-name">Screen Protectors</div>
+                <div class="product-cat">Cases &amp; Protection</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-revenue">$3,780</div>
+                <div class="product-units">540 units</div>
+                <div class="product-bar-wrap"><div class="product-bar" style="width:46%"></div></div>
+              </div>
+            </div>
+            <div class="product-row">
+              <span class="product-rank">5</span>
+              <div class="product-icon">🎧</div>
+              <div class="product-info">
+                <div class="product-name">True Wireless Earbuds</div>
+                <div class="product-cat">Audio</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-revenue">$3,410</div>
+                <div class="product-units">87 units</div>
+                <div class="product-bar-wrap"><div class="product-bar" style="width:41%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Alerts -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Inventory Alerts</div>
+              <div class="card-desc">Low stock items</div>
+            </div>
+            <span class="status-badge status-refund" style="border-radius:9999px">4 critical</span>
+          </div>
+          <div class="inv-list">
+            <div class="inv-row">
+              <div class="inv-icon critical">📱</div>
+              <div class="inv-info">
+                <div class="inv-name">MagSafe iPhone 15 Pro Case</div>
+                <div class="inv-stock critical">Only 3 units left</div>
+              </div>
+              <button class="inv-btn critical">Restock now</button>
+            </div>
+            <div class="inv-row">
+              <div class="inv-icon critical">🔌</div>
+              <div class="inv-info">
+                <div class="inv-name">USB-C to Lightning Cable 2m</div>
+                <div class="inv-stock critical">Only 5 units left</div>
+              </div>
+              <button class="inv-btn critical">Restock now</button>
+            </div>
+            <div class="inv-row">
+              <div class="inv-icon warn">⚡</div>
+              <div class="inv-info">
+                <div class="inv-name">Wireless Charging Pad 15W</div>
+                <div class="inv-stock warn">12 units remaining</div>
+              </div>
+              <button class="inv-btn">Restock</button>
+            </div>
+            <div class="inv-row">
+              <div class="inv-icon warn">🎧</div>
+              <div class="inv-info">
+                <div class="inv-name">Earbuds Charging Case (spare)</div>
+                <div class="inv-stock warn">8 units remaining</div>
+              </div>
+              <button class="inv-btn">Restock</button>
+            </div>
+            <div class="inv-row">
+              <div class="inv-icon warn">🛡️</div>
+              <div class="inv-info">
+                <div class="inv-name">Galaxy S24 Screen Protector</div>
+                <div class="inv-stock warn">15 units remaining</div>
+              </div>
+              <button class="inv-btn">Restock</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions + Notifications -->
+      <div class="row-2-eq">
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Quick Actions</div>
+          </div>
+          <div class="qa-grid">
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#7F56D9" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <span class="qa-label">Add Product</span>
+            </button>
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 3h14l-1.5 9H4.5L3 3z" stroke="#7F56D9" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7" cy="17" r="1.5" fill="#7F56D9"/><circle cx="13" cy="17" r="1.5" fill="#7F56D9"/></svg>
+              </div>
+              <span class="qa-label">Manage Orders</span>
+            </button>
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 6h14M3 10h14M3 14h8" stroke="#7F56D9" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <span class="qa-label">Manage Categories</span>
+            </button>
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="#7F56D9" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="qa-label">Add Discount</span>
+            </button>
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 14l4-5 4 3 3-4 3 2" stroke="#7F56D9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="3" width="16" height="14" rx="2" stroke="#7F56D9" stroke-width="1.5"/></svg>
+              </div>
+              <span class="qa-label">View Reports</span>
+            </button>
+            <button class="qa-btn">
+              <div class="qa-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 18a8 8 0 0 1 16 0" stroke="#7F56D9" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <span class="qa-label">Manage Customers</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Notifications</div>
+              <div class="card-desc">Recent activity</div>
+            </div>
+            <button style="font-size:13px;font-weight:600;color:#6941C6;cursor:pointer;background:none;border:none;font-family:inherit">Mark all read</button>
+          </div>
+          <div class="notif-list">
+            <div class="notif-item unread">
+              <span class="notif-dot-outer"></span>
+              <div class="notif-icon" style="background:#ECFDF3">🛒</div>
+              <div class="notif-body">
+                <div class="notif-text"><strong>New order #ORD-4291</strong> received from Maya Patel for $249.00</div>
+                <div class="notif-time">2 minutes ago</div>
+              </div>
+            </div>
+            <div class="notif-item unread">
+              <span class="notif-dot-outer"></span>
+              <div class="notif-icon" style="background:#EFF8FF">💳</div>
+              <div class="notif-body">
+                <div class="notif-text"><strong>Payment confirmed</strong> for order #ORD-4288 — $178.50 settled</div>
+                <div class="notif-time">18 minutes ago</div>
+              </div>
+            </div>
+            <div class="notif-item unread">
+              <span class="notif-dot-outer"></span>
+              <div class="notif-icon" style="background:#FEF3F2">↩️</div>
+              <div class="notif-body">
+                <div class="notif-text"><strong>Refund request</strong> from Priya Sharma on order #ORD-4287 needs review</div>
+                <div class="notif-time">1 hour ago</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <span class="notif-dot-outer"></span>
+              <div class="notif-icon" style="background:#FFFAEB">⚠️</div>
+              <div class="notif-body">
+                <div class="notif-text"><strong>Low inventory alert</strong> — MagSafe iPhone 15 Pro Case down to 3 units</div>
+                <div class="notif-time">3 hours ago</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <span class="notif-dot-outer"></span>
+              <div class="notif-icon" style="background:#F4EBFF">💬</div>
+              <div class="notif-body">
+                <div class="notif-text"><strong>Customer message</strong> from Carlos Rivera about order #ORD-4290 shipping status</div>
+                <div class="notif-time">5 hours ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dash-content -->
+  </div><!-- /dash-main -->
+</div><!-- /view-dashboard -->
+
+<script>
+/* ── View switching ─────────────────────────────────────── */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('view-' + name);
+  el.classList.add('active');
+  if (name === 'dashboard') {
+    requestAnimationFrame(() => drawChart(currentPeriod));
+  }
+}
+
+/* ── Password toggle ────────────────────────────────────── */
+function togglePwd(id, btn) {
+  const input = document.getElementById(id);
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.innerHTML = show
+    ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 1l16 16M7.37 7.42A2.5 2.5 0 0 0 11.1 11.1M5 5.07C2.81 6.46 1.44 8.54 1 9c1.55 3.67 4.5 6 8 6a8.3 8.3 0 0 0 4-1.07M9 3C12.5 3 15.45 5.33 17 9a9.57 9.57 0 0 1-2.09 3.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C2.55 5.33 5.5 3 9 3s6.45 2.33 8 6c-1.55 3.67-4.5 6-8 6S2.55 12.67 1 9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>';
+}
+
+/* ── Sign-up submit ─────────────────────────────────────── */
+function handleSignup(e) {
+  e.preventDefault();
+  const btn = document.getElementById('s-submit');
+  btn.textContent = 'Creating account…';
+  btn.disabled = true;
+  setTimeout(() => showView('dashboard'), 1400);
+}
+
+/* ── Chart ──────────────────────────────────────────────── */
+let currentPeriod = 'daily';
+
+const chartData = {
+  daily: {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    values: [3200, 4100, 3800, 5200, 4900, 6800, 4280],
+  },
+  weekly: {
+    labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
+    values: [18400, 22100, 19800, 24600],
+  },
+  monthly: {
+    labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    values: [38200, 41500, 36900, 44100, 40800, 48295],
+  },
+};
+
+function setPeriod(period, btn) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawChart(period);
+}
+
+function drawChart(period) {
+  const canvas = document.getElementById('sales-canvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || canvas.offsetWidth || 600;
+  const h = 220;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const { labels, values } = chartData[period];
+  const PAD_L = 52, PAD_R = 16, PAD_T = 16, PAD_B = 36;
+  const cw = w - PAD_L - PAD_R;
+  const ch = h - PAD_T - PAD_B;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min || 1;
+
+  // Grid lines
+  const ticks = 4;
+  ctx.strokeStyle = '#EAECF0';
+  ctx.lineWidth = 1;
+  ctx.font = '11px Inter,system-ui,sans-serif';
+  ctx.fillStyle = '#98A2B3';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= ticks; i++) {
+    const y = PAD_T + ch - (i / ticks) * ch;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, y);
+    ctx.lineTo(PAD_L + cw, y);
+    ctx.stroke();
+    const val = min + (i / ticks) * range;
+    ctx.fillText('$' + (val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val.toFixed(0)), PAD_L - 6, y + 4);
+  }
+
+  // Points
+  const pts = values.map((v, i) => ({
+    x: PAD_L + (i / (values.length - 1)) * cw,
+    y: PAD_T + ch - ((v - min) / range) * ch,
+  }));
+
+  // Gradient area
+  const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + ch);
+  grad.addColorStop(0, 'rgba(127,86,217,0.18)');
+  grad.addColorStop(1, 'rgba(127,86,217,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const cp1x = (pts[i - 1].x + pts[i].x) / 2;
+    ctx.bezierCurveTo(cp1x, pts[i - 1].y, cp1x, pts[i].y, pts[i].x, pts[i].y);
+  }
+  ctx.lineTo(pts[pts.length - 1].x, PAD_T + ch);
+  ctx.lineTo(pts[0].x, PAD_T + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const cp1x = (pts[i - 1].x + pts[i].x) / 2;
+    ctx.bezierCurveTo(cp1x, pts[i - 1].y, cp1x, pts[i].y, pts[i].x, pts[i].y);
+  }
+  ctx.strokeStyle = '#7F56D9';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Dots
+  pts.forEach((p, i) => {
+    const isLast = i === pts.length - 1;
+    if (isLast) {
+      // Glow ring
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(127,86,217,0.2)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, isLast ? 4 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#7F56D9';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, isLast ? 2 : 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+  });
+
+  // X labels
+  ctx.fillStyle = '#98A2B3';
+  ctx.textAlign = 'center';
+  ctx.font = '11px Inter,system-ui,sans-serif';
+  pts.forEach((p, i) => {
+    ctx.fillText(labels[i], p.x, h - 8);
+  });
+}
+
+// Redraw on resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (document.getElementById('view-dashboard').classList.contains('active')) {
+      drawChart(currentPeriod);
+    }
+  }, 100);
+});
+</script>
+</body>
+</html>
